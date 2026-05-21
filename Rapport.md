@@ -1,7 +1,7 @@
 # Labo 6 - TLS
 ---
-Michel
-
+Groupe 15
+Michel Polunkin
 Koray Akgul
 
 ## Mise en place du serveur
