@@ -90,4 +90,16 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 
 **Sélection/Validation utilisateur :** Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
 
+## Pharming
+---
+>Utilisez votre PKI pour créer un certificat serveur, en utilisant le Common Name (CN) heig-vd.ch.
+
+>Simulez le comportement d'un malware falsifiant le DNS de votre machine, en éditant le fichier hosts. Ajoutez l'entrée suivante:
+
+>127.0.2.2   heig-vd.ch
+>Changez la configuration du serveur pour utiliser le port 443. Quel autre changement devez-vous faire pour que celà fonctionne, et pourquoi ?
+
+>Naviguez maintenant vers https://heig-vd.ch
+>Quel site obtenez-vous ? Votre navigateur génère-t-il une alerte de sécurité ? Pourquoi ?
+
 
