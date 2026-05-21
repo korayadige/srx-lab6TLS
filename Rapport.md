@@ -37,7 +37,7 @@ Pourquoi : Le certificat du serveur (web-server.crt) a été signé par notre pr
 
 > Quel est maintenant l'état de la sécurité de la connexion, selon le navigateur ?
 
-Selon le navigateur, l'état de la sécurité de la connexion est désormais "Sécurisé" (validé par l'affichage du cadenas fermé gris) concernant l'authentification du serveur.
+Selon le navigateur, l'état de la sécurité de la connexion est désormais "Sécurisé"  concernant l'authentification du serveur.
 
 Explication détaillée : > 1. Chiffrement et Confiance : Le message d'avertissement initial ("Attention : risque probable de sécurité") a totalement disparu. Cela prouve que le canal TLS est correctement établi et que le navigateur fait entièrement confiance à notre Autorité de Certification racine (ca.crt) pour valider l'identité de localhost.
 2. Blocage Applicatif (mTLS) : Le fait que la page affiche le texte "Invalid client certificate authentication" confirme que la couche transport (TLS) est sécurisée, mais que le serveur applique strictement le Mutual TLS. Il rejette l'accès au contenu applicatif tant que le client (le navigateur) ne lui présente pas un certificat d'identité valide (client.p12).
@@ -60,5 +60,32 @@ Node.js vérifie si le navigateur a fourni un certificat valide signé par la ca
 
 La condition if (<!req.client.authorized>) est validée, et le serveur te renvoie une erreur HTTP **401** Unauthorized avec le texte : **"Invalid client certificate authentication."**.
 
+
+## Authentification client
+>Examinez les options d'export disponibles dans easy-rsa. Quels sont les formats supportés ?
+L'outil Easy-RSA (basé sur OpenSSL) génère et stocke initialement les clés et certificats au format brut **PEM (Privacy-Enhanced Mail)**. Pour l'exportation et l'intégration dans des applications tierces (comme les navigateurs web ou les systèmes d'exploitation), Easy-RSA prend principalement en charge deux grandes familles de formats :
+
+**Le format PKCS#12** (fichiers .p12 ou .pfx) :  C'est l'option d'exportation standard et la plus sécurisée pour les clients. Elle permet de regrouper de manière conteneurisée la clé privée de l'utilisateur, son certificat public, ainsi que le certificat de l'autorité racine (CA) au sein d'un seul fichier chiffré par un mot de passe.
+
+**Le format PEM / PKCS#1 / PKCS#8** (fichiers séparés .crt et .key) :Ce format exporte les données sous forme de texte encodé en Base64 (délimité par des balises -----BEGIN...-----). Il est généralement privilégié pour la configuration directe des serveurs web (comme Node.js, Nginx ou Apache).
+
+>Créez un certificat client, exportez-le au format PKCS#12, puis importez le comme certificat personnel dans votre navigateur, puis visitez l'URL du serveur.
+<img width="355" height="199" alt="image" src="https://github.com/user-attachments/assets/1147ce6e-7f40-4517-a923-f5b864ddcab0" />
+
+>Qu'est-ce qui à changé ?
+
+**Après l'importation du certificat client (client.p12) et la validation de la boîte de dialogue du navigateur**, l'accès au contenu applicatif du serveur a été débloqué. Le message d'erreur "Invalid client certificate" a disparu pour laisser place à la page sécurisée du laboratoire (affichant l'identité du client authentifié).
+
+Le protocole mTLS (Mutual TLS) est désormais finalisé avec succès. La poignée de main (Handshake TLS) inclut maintenant l'étape où le client prouve son identité au serveur en signant un défi cryptographique avec sa clé privée (client.key), tandis que le serveur valide la signature grâce au certificat public reçu (client.crt) lié à l'autorité racine (ca.crt).
+
+>Comment le navigateur détermine-t-il quel certificat présenter au serveur ?
+
+Le navigateur détermine le certificat à présenter en suivant un processus strict basé sur les requêtes cryptographiques du serveur lors du Handshake TLS :
+
+**Certificate Request (Annonce du serveur) :** Lors de la négociation TLS, le serveur configuré avec requestCert: true envoie un message Certificate Request. Ce message contient une liste des noms d'autorités de certification acceptées (Distinguished Names de CA acceptés, ici CN=MyLocalCA).
+
+**Filtrage par le navigateur :** Le navigateur (Firefox) parcourt son magasin de certificats personnels (Vos certificats). Il filtre et ne propose à l'utilisateur que les certificats clients qui ont été signés et émis par l'une des CA demandées par le serveur.
+
+**Sélection/Validation utilisateur :** Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
 
 
