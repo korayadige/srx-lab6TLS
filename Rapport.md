@@ -8,7 +8,7 @@ Koray Akgul
 ---
 >Inspectez le code fourni dans le répertoire server. Quel est la signification de chaque option passée à https.createServer ?
 
-1. Signification des options de https.createServer
+ **Signification des options de https.createServer**
  Chaque option  dans le fichier index.js :
 
 **cert (cert/web-server.crt) :** C'est le certificat public du serveur (X.509). Il sert de carte d'identité au serveur. Lors de la connexion, le serveur le présente au navigateur pour prouver qu'il est bien le propriétaire légitime du domaine (ici, localhost).
