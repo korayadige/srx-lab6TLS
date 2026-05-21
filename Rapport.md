@@ -29,9 +29,11 @@ En la mettant à false, le serveur accepte quand même la poignée de main TLS, 
 
 >Obtenez-vous des avertissements de sécurité ? Pourquoi ?
 
-**Oui**, le navigateur affiche un avertissement de sécurité ("Invalid client certificate authentication.).
+**Oui**, le navigateur affiche un avertissement de sécurité (ERROR).
 
 Pourquoi : Le certificat du serveur (web-server.crt) a été signé par notre propre autorité de certification locale (ca.crt). Par défaut, les navigateurs web ne font confiance qu'à une liste restreinte d'Autorités de Certification publiques et reconnues mondialement (comme DigiCert, Let's Encrypt, etc.). Comme notre CA locale ne fait pas partie de ce "magasin de confiance"  du navigateur, celui-ci émet une alerte par mesure de sécurité.
+
+
 
 Dans notre fichier index.js, le code de la route principale est le suivant :
 
