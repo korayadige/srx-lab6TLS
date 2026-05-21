@@ -41,8 +41,11 @@ Pourquoi : Le certificat du serveur (web-server.crt) a été signé par notre pr
 
 Selon le navigateur, l'état de la sécurité de la connexion est désormais "Sécurisé"  concernant l'authentification du serveur.
 
-Explication détaillée : > 1. Chiffrement et Confiance : Le message d'avertissement initial ("Attention : risque probable de sécurité") a totalement disparu. Cela prouve que le canal TLS est correctement établi et que le navigateur fait entièrement confiance à notre Autorité de Certification racine (ca.crt) pour valider l'identité de localhost.
-2. Blocage Applicatif (mTLS) : Le fait que la page affiche le texte "Invalid client certificate authentication" confirme que la couche transport (TLS) est sécurisée, mais que le serveur applique strictement le Mutual TLS. Il rejette l'accès au contenu applicatif tant que le client (le navigateur) ne lui présente pas un certificat d'identité valide (client.p12).
+Explication : 
+
+1. Chiffrement et Confiance : Le message d'avertissement initial ("Attention : risque probable de sécurité") a totalement disparu. Cela prouve que le canal TLS est correctement établi et que le navigateur fait entièrement confiance à notre Autorité de Certification racine (ca.crt) pour valider l'identité de localhost.
+   
+3. Blocage Applicatif (mTLS) : Le fait que la page affiche le texte "Invalid client certificate authentication" confirme que la couche transport (TLS) est sécurisée, mais que le serveur applique strictement le Mutual TLS. Il rejette l'accès au contenu applicatif tant que le client (le navigateur) ne lui présente pas un certificat d'identité valide (client.p12).
 
 Dans notre fichier index.js, le code de la route principale est le suivant :
 
