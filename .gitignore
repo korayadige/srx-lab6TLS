@@ -1,0 +1,16 @@
+
+node_modules
+cert
+
+data/*
+
+# PKI - private keys and sensitive data
+pki/
+*.key
+*.p12
+*.inline
+
+# WSL Windows metadata
+*:Zone.Identifier
+
+!.gitkeep

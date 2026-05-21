@@ -1,0 +1,19 @@
+{
+  "name": "labo-6-tls",
+  "version": "1.0.0",
+  "description": "Mutual TLS Lab",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --watch . index.js"
+  },
+  "author": "Jean-François Pasche & Maxime Augier",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
