@@ -71,10 +71,12 @@ L'outil Easy-RSA (basé sur OpenSSL) génère et stocke initialement les clés e
 
 >Créez un certificat client, exportez-le au format PKCS#12, puis importez le comme certificat personnel dans votre navigateur, puis visitez l'URL du serveur.
 <img width="355" height="199" alt="image" src="https://github.com/user-attachments/assets/1147ce6e-7f40-4517-a923-f5b864ddcab0" />
+<img width="517" height="153" alt="image" src="https://github.com/user-attachments/assets/40e94e74-db13-4487-842a-ed02747c2288" />
+
 
 >Qu'est-ce qui à changé ?
 
-**Après l'importation du certificat client (client.p12) et la validation de la boîte de dialogue du navigateur**, l'accès au contenu applicatif du serveur a été débloqué. Le message d'erreur "Invalid client certificate" a disparu pour laisser place à la page sécurisée du laboratoire (affichant l'identité du client authentifié).
+**Après l'importation du certificat client (client.p12) et la validation de la boîte de dialogue du navigateur**, l'accès au contenu applicatif du serveur a été débloqué. Le message d'erreur "Invalid client certificate" a disparu pour laisser place à la page sécurisée du laboratoire (affichant "Hello,World!").
 
 Le protocole mTLS (Mutual TLS) est désormais finalisé avec succès. La poignée de main (Handshake TLS) inclut maintenant l'étape où le client prouve son identité au serveur en signant un défi cryptographique avec sa clé privée (client.key), tandis que le serveur valide la signature grâce au certificat public reçu (client.crt) lié à l'autorité racine (ca.crt).
 
