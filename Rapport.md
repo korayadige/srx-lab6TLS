@@ -100,6 +100,7 @@ On a fait.
 
 >127.0.2.2   heig-vd.ch
 >Changez la configuration du serveur pour utiliser le port 443. Quel autre changement devez-vous faire pour que celà fonctionne, et pourquoi ?
+
 1.Modification dans le code (index.js) plus 443 :
 On a aussi changé le code dans index.js. Le serveur utilise maintenant fake_server.crt et fake_server.key à la place des anciens fichiers de localhost.(Common Name = heig-vd.ch) .
 Le fichier hosts change la direction du trafic (DNS Spoofing) vers notre machine. Mais cela ne suffit pas. Quand le navigateur (Firefox) arrive sur notre serveur, il demande une preuve d'identité. Pour cela, nous avons changé le code dans index.js : le serveur utilise maintenant *fake_server.crt* et *fake_server.key* (avec le CN heig-vd.ch) à la place des fichiers de localhost. 
@@ -107,8 +108,19 @@ Le fichier hosts change la direction du trafic (DNS Spoofing) vers notre machine
 
 Pour utiliser le port 443, on doit démarrer le serveur avec la commande sudo node index.js. En Linux, les ports de 0 à 1023 sont des "ports privilégiés" (sécurisés). Un utilisateur normal ne peut pas utiliser le port 443. On a besoin des droits d'administrateur (root) pour ouvrir ce port
 
->Naviguez maintenant vers https://heig-vd.ch
->Quel site obtenez-vous ? Votre navigateur génère-t-il une alerte de sécurité ? Pourquoi ?
+
+>Quel site obtenez-vous ?
+
+Nous n'obtenons pas le site de l'école. Nous obtenons une page d'erreur de Firefox car la connexion est bloquée.
+
+>Votre navigateur génère-t-il une alerte de sécurité ?
+
+Oui, Firefox génère une alerte de sécurité critique ("Attention : risque probable de sécurité").
+
+>Pourquoi ?
+
+Parce que notre faux certificat n'a pas de SAN (Subject Alternative Name) pour heig-vd.ch. Les navigateurs modernes rejettent les certificats sans SAN. De plus, Firefox ne fait pas confiance à notre CA racine pour un domaine public.
+
 
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
 
