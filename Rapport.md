@@ -15,7 +15,7 @@ Koray Akgul
 
 **cert (cert/web-server.crt) :** C'est le certificat public du serveur (X.509). Il sert de carte d'identité au serveur. Lors de la connexion, le serveur le présente au navigateur pour prouver qu'il est bien le propriétaire légitime du domaine (ici, localhost).
 
-**key (cert/web-server.key) :** C'est la clé privée du serveur. Elle est utilisée pour déchiffrer les informations envoyées par le client et signer les messages lors de la poignée de main (handshake) TLS. Elle doit rester strictement secrète.
+**key (cert/web-server.key) :** C'est la clé privée du serveur. Elle est utilisée pour signer les messages lors de la poignée de main (handshake) TLS afin de prouver l'identité du serveur. Dans TLS 1.3 (utilisé par Node.js moderne), les clés de session sont dérivées séparément via ECDHE — la clé privée ne sert pas à déchiffrer les données de session. Elle doit rester strictement secrète.
 
 **passphrase ('1234') :** C'est le mot de passe qui protège la clé privée. Même si un attaquant vole le fichier web-server.key, il ne peut pas l'utiliser sans cette phrase de passe. Le serveur l'utilise au démarrage pour déverrouiller la clé en mémoire.
 
@@ -53,7 +53,7 @@ app.get('/', (req, res) => {
 ```
 On navigue sur https://localhost:5000.
 
-Comme rejectUnauthorized est à false, le serveur nous laisse entrer sur le protocole HTTP.
+Comme rejectUnauthorized est à false, le serveur nous laisse entrer sur le protocole HTTPS.
 
 Node.js vérifie si le navigateur a fourni un certificat valide signé par la ca.crt. Ce n'est pas le cas, donc req.client.authorized devient false.
 
@@ -65,9 +65,11 @@ La condition "if" est validée, et le serveur te renvoie une erreur HTTP **401**
 >Examinez les options d'export disponibles dans easy-rsa. Quels sont les formats supportés ?
 L'outil Easy-RSA (basé sur OpenSSL) génère et stocke initialement les clés et certificats au format brut **PEM (Privacy-Enhanced Mail)**. Pour l'exportation et l'intégration dans des applications tierces (comme les navigateurs web ou les systèmes d'exploitation), Easy-RSA prend principalement en charge deux grandes familles de formats :
 
-**Le format PKCS#12** (fichiers .p12 ou .pfx) :  C'est l'option d'exportation standard et la plus sécurisée pour les clients. Elle permet de regrouper de manière conteneurisée la clé privée de l'utilisateur, son certificat public, ainsi que le certificat de l'autorité racine (CA) au sein d'un seul fichier chiffré par un mot de passe.
+**Le format PKCS#12** (`export-p12`, fichiers .p12 ou .pfx) : C'est l'option d'exportation standard et la plus sécurisée pour les clients. Elle permet de regrouper de manière conteneurisée la clé privée de l'utilisateur, son certificat public, ainsi que le certificat de l'autorité racine (CA) au sein d'un seul fichier chiffré par un mot de passe.
 
-**Le format PEM / PKCS#1 / PKCS#8** (fichiers séparés .crt et .key) :Ce format exporte les données sous forme de texte encodé en Base64 (délimité par des balises -----BEGIN...-----). Il est généralement privilégié pour la configuration directe des serveurs web (comme Node.js, Nginx ou Apache).
+**Le format PKCS#7** (`export-p7`, fichiers .p7b) : Permet d'exporter une chaîne de certificats (sans clé privée). Utilisé notamment pour distribuer des certificats intermédiaires ou racines.
+
+**Le format PEM / PKCS#8** (`export-p8`, fichiers séparés .crt et .key) : Ce format exporte les données sous forme de texte encodé en Base64 (délimité par des balises `-----BEGIN...-----`). Il est généralement privilégié pour la configuration directe des serveurs web (comme Node.js, Nginx ou Apache).
 
 >Créez un certificat client, exportez-le au format PKCS#12, puis importez le comme certificat personnel dans votre navigateur, puis visitez l'URL du serveur.
 
@@ -129,17 +131,67 @@ Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes 
 
 Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne connaît pas cette autorité locale pour un vrai site public comme heig-vd.ch. C'est une protection contre le vol d'identité.
 
+**Point clé — le scénario "CA malhonnête" :** Si notre CA avait déjà été présente dans le magasin de confiance du navigateur (comme nous l'avions ajoutée dans la partie précédente), Firefox n'aurait généré **aucune alerte**. L'utilisateur aurait vu le cadenas vert et cru naviguer sur le vrai heig-vd.ch. C'est précisément le danger d'une CA compromise ou corrompue : une fois qu'elle est approuvée par le système, elle peut signer n'importe quel domaine sans déclencher d'avertissement.
+
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
-
-
+---
 ## Idées de tâches
-> script de setup
-> tester la révocation
-> tester la durée de validité
-> serveur CA
-> implémenter une whitelist des utilisateurs authorisés
+
+### Whitelist des utilisateurs autorisés
+
+Nous avons implémenté une whitelist dans `server/index.js` afin de restreindre l'accès non seulement aux clients possédant un certificat valide, mais également à une liste explicite d'utilisateurs autorisés.
+
+**Modification apportée :**
+
+```js
+const WHITELIST = ['web-client-1'];
+
+app.get('/', (req, res) => {
+    if (!req.client.authorized) {
+        return res.status(401).send('Invalid client certificate authentication.');
+    }
+    const cert = req.socket.getPeerCertificate();
+    const cn = cert.subject.CN;
+    console.log(cn);
+    if (!WHITELIST.includes(cn)) {
+        return res.status(403).send(`Access denied: "${cn}" is not authorized.`);
+    }
+    return res.send('Hello, world!');
+});
+```
+
+**Comportement :**
+
+- Certificat invalide ou absent → **401 Unauthorized**
+- Certificat valide mais CN absent de la whitelist → **403 Forbidden** (`Access denied: "..." is not authorized.`)
+- Certificat valide et CN présent dans la whitelist → **200 OK** (`Hello, world!`)
+
+**Intérêt :** Cette approche découple l'authentification (valider l'identité cryptographique) de l'autorisation (décider si cet utilisateur a le droit d'accéder). Même si un attaquant obtient un certificat signé par notre CA, il sera bloqué s'il ne figure pas dans la whitelist.
 
 ---
+
+## Questions théoriques
+
+**Imaginer un scénario pertinent où ce serait utile :**
+
+Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
+
+**Comment gérer la signature des certificats ?**
+
+Dans un système à petite échelle, un opérateur signe manuellement chaque CSR avec la CA (comme nous l'avons fait avec EasyRSA).
+
+Dans la réalité, une entreprise doit utiliser une PKI (Public Key Infrastructure) interne :
+
+CA Racine Offline : L'autorité racine (ca.crt) doit être stockée déconnectée d'Internet (offline) pour être protégée des hackers.
+
+CA Intermédiaire : Une autorité secondaire est utilisée pour signer les certificats des serveurs et des clients tous les jours.
+
+Automatisation : Utiliser des outils comme Active Directory ou OpenXPKI pour distribuer et révoquer (annuler) les certificats automatiquement.
+
+
+---
+
+
 
