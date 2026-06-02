@@ -58,6 +58,7 @@ Comme rejectUnauthorized est à false, le serveur nous laisse entrer sur le prot
 Node.js vérifie si le navigateur a fourni un certificat valide signé par la ca.crt. Ce n'est pas le cas, donc req.client.authorized devient false.
 
 La condition "if" est validée, et le serveur te renvoie une erreur HTTP **401** Unauthorized avec le texte : **"Invalid client certificate authentication."**.
+---
 
 
 ## Authentification client
@@ -89,7 +90,7 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 **Filtrage par le navigateur :** Le navigateur (Firefox) parcourt son magasin de certificats personnels (**Vos certificats**). Il filtre et ne propose à l'utilisateur que les certificats clients qui ont été signés et émis par l'une des CA demandées par le serveur.
 
 **Sélection/Validation utilisateur :** Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
-
+---
 ## Pharming
 ---
 >Utilisez votre PKI pour créer un certificat serveur, en utilisant le Common Name (CN) heig-vd.ch.
@@ -132,4 +133,13 @@ Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne 
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
 
+
+## Idées de tâches
+> script de setup
+> tester la révocation
+> tester la durée de validité
+> serveur CA
+> implémenter une whitelist des utilisateurs authorisés
+
+---
 
