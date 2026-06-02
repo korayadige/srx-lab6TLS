@@ -136,20 +136,7 @@ Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne 
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
-
-
-## Questions théoriques
-
-**Imaginer un scénario pertinent où ce serait utile :**
-
-Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
-
-**Comment gérer la signature des certificats ?**
-
-Dans un système à petite échelle, un opérateur signe manuellement chaque CSR avec la CA (comme nous l'avons fait avec EasyRSA). À plus grande échelle, on utilise une CA intermédiaire pour déléguer la signature tout en gardant la CA racine hors ligne. La révocation est gérée via une CRL ou OCSP. Le renouvellement peut être automatisé avec le protocole ACME (utilisé par Let's Encrypt).
-
 ---
-
 ## Idées de tâches
 
 ### Whitelist des utilisateurs autorisés
@@ -184,4 +171,27 @@ app.get('/', (req, res) => {
 **Intérêt :** Cette approche découple l'authentification (valider l'identité cryptographique) de l'autorisation (décider si cet utilisateur a le droit d'accéder). Même si un attaquant obtient un certificat signé par notre CA, il sera bloqué s'il ne figure pas dans la whitelist.
 
 ---
+
+## Questions théoriques
+
+**Imaginer un scénario pertinent où ce serait utile :**
+
+Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
+
+**Comment gérer la signature des certificats ?**
+
+Dans un système à petite échelle, un opérateur signe manuellement chaque CSR avec la CA (comme nous l'avons fait avec EasyRSA).
+
+Dans la réalité, une entreprise doit utiliser une PKI (Public Key Infrastructure) interne :
+
+CA Racine Offline : L'autorité racine (ca.crt) doit être stockée déconnectée d'Internet (offline) pour être protégée des hackers.
+
+CA Intermédiaire : Une autorité secondaire est utilisée pour signer les certificats des serveurs et des clients tous les jours.
+
+Automatisation : Utiliser des outils comme Active Directory ou OpenXPKI pour distribuer et révoquer (annuler) les certificats automatiquement.
+
+
+---
+
+
 
