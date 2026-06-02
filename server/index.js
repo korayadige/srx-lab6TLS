@@ -6,13 +6,18 @@ import https from 'https';
 const PORT = 5000;
 const app = express()
 
+const WHITELIST = ['web-client-1'];
 
 app.get('/', (req, res) => {
     if (!req.client.authorized) {
         return res.status(401).send('Invalid client certificate authentication.');
     }
     const cert = req.socket.getPeerCertificate();
-    console.log(cert.subject.CN);
+    const cn = cert.subject.CN;
+    console.log(cn);
+    if (!WHITELIST.includes(cn)) {
+        return res.status(403).send(`Access denied: "${cn}" is not authorized.`);
+    }
     return res.send('Hello, world!');
 });
 
