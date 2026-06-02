@@ -92,7 +92,8 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 
 **Filtrage par le navigateur :** Le navigateur (Firefox) parcourt son magasin de certificats personnels (**Vos certificats**). Il filtre et ne propose à l'utilisateur que les certificats clients qui ont été signés et émis par l'une des CA demandées par le serveur.
 
-*Sélection/Validation utilisateur :* Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
+**Sélection/Validation utilisateur :** Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
+
 ---
 ## Pharming
 ---
