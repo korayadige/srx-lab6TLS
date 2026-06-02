@@ -95,6 +95,7 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 ---
 ## Pharming
 ---
+
 >Utilisez votre PKI pour créer un certificat serveur, en utilisant le Common Name (CN) heig-vd.ch.
 
 Nous avons fait.
@@ -116,7 +117,7 @@ Pour utiliser le port 443, on doit démarrer le serveur avec la commande sudo no
 
 
 >Quel site obtenez-vous ?
->
+
 Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes :
 
 Étape 1 : Au début, nous obtenons une erreur de connexion (page blanche avec le renard) parce que le serveur n'écoute pas sur l'adresse 127.0.2.2.
@@ -137,6 +138,7 @@ Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne 
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
 ---
+
 ## Idées de tâches
 
 ### Whitelist des utilisateurs autorisés
@@ -174,11 +176,11 @@ app.get('/', (req, res) => {
 
 ## Questions théoriques
 
-**Imaginer un scénario pertinent où ce serait utile :**
+>**Imaginer un scénario pertinent où ce serait utile :**
 
 Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
 
-**Comment gérer la signature des certificats ?**
+>**Comment gérer la signature des certificats ?**
 
 Dans un système à petite échelle, un opérateur signe manuellement chaque CSR avec la CA (comme nous l'avons fait avec EasyRSA).
 
