@@ -94,33 +94,42 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 ---
 >Utilisez votre PKI pour créer un certificat serveur, en utilisant le Common Name (CN) heig-vd.ch.
 
-On a fait.
+Nous avons fait.
 
 >Simulez le comportement d'un malware falsifiant le DNS de votre machine, en éditant le fichier hosts. Ajoutez l'entrée suivante:
 
 >127.0.2.2   heig-vd.ch
 >Changez la configuration du serveur pour utiliser le port 443. Quel autre changement devez-vous faire pour que celà fonctionne, et pourquoi ?
 
-1.Modification dans le code (index.js) plus 443 :
-On a aussi changé le code dans index.js. Le serveur utilise maintenant fake_server.crt et fake_server.key à la place des anciens fichiers de localhost.(Common Name = heig-vd.ch) .
+1.Changement web_server.key et crt. avec fake_server.crt et fake_server.key.(index.js)
 Le fichier hosts change la direction du trafic (DNS Spoofing) vers notre machine. Mais cela ne suffit pas. Quand le navigateur (Firefox) arrive sur notre serveur, il demande une preuve d'identité. Pour cela, nous avons changé le code dans index.js : le serveur utilise maintenant *fake_server.crt* et *fake_server.key* (avec le CN heig-vd.ch) à la place des fichiers de localhost. 
-2.Utilisation de sudo :
+
+2.Au niveau de la Configuration Réseau (Configuration 0.0.0.0) :
+Nous avons changé le code pour écouter sur 0.0.0.0 (.listen(PORT, '0.0.0.0')). Notre fichier hosts redirige le trafic vers l'adresse 127.0.2.2. Si le serveur écoute seulement 127.0.0.1, le navigateur affiche une erreur de connexion. Avec 0.0.0.0, le serveur écoute toutes les adresses IP de la machine.
+
+3.Utilisation de sudo :
 
 Pour utiliser le port 443, on doit démarrer le serveur avec la commande sudo node index.js. En Linux, les ports de 0 à 1023 sont des "ports privilégiés" (sécurisés). Un utilisateur normal ne peut pas utiliser le port 443. On a besoin des droits d'administrateur (root) pour ouvrir ce port
 
 
 >Quel site obtenez-vous ?
+>
+Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes :
 
-Nous n'obtenons pas le site de l'école. Nous obtenons une page d'erreur de Firefox car la connexion est bloquée.
+Étape 1 : Au début, nous obtenons une erreur de connexion (page blanche avec le renard) parce que le serveur n'écoute pas sur l'adresse 127.0.2.2.
+
+Étape 2 : Après la configuration 0.0.0.0, le navigateur demande notre certificat client. Nous acceptons, et nous obtenons un message d'erreur sur une page blanche : *"Invalid client certificate authentication."*
 
 >Votre navigateur génère-t-il une alerte de sécurité ?
 
-Oui, Firefox génère une alerte de sécurité critique ("Attention : risque probable de sécurité").
+*Oui*, Firefox génère d'abord une alerte de sécurité en arrière-plan avec le code SEC_ERROR_UNKNOWN_ISSUER avant de demander le certificat client.
 
 >Pourquoi ?
 
-Parce que notre faux certificat n'a pas de SAN (Subject Alternative Name) pour heig-vd.ch. Les navigateurs modernes rejettent les certificats sans SAN. De plus, Firefox ne fait pas confiance à notre CA racine pour un domaine public.
-
+Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne connaît pas cette autorité locale pour un vrai site public comme heig-vd.ch. C'est une protection contre le vol d'identité.
 
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
+
+<img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
+
 
