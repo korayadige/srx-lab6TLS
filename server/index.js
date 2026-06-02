@@ -3,7 +3,7 @@ import fs from 'fs';
 import https from 'https';
 
 
-const PORT = 5000;
+const PORT = 443;
 const app = express()
 
 const WHITELIST = ['web-client-1'];
@@ -22,8 +22,8 @@ app.get('/', (req, res) => {
 });
 
 const options = {
-    cert: fs.readFileSync('cert/web-server.crt'),
-    key: fs.readFileSync('cert/web-server.key'),
+    cert: fs.readFileSync('cert/fake-server.crt'),
+    key: fs.readFileSync('cert/fake-server.key'),
     passphrase: '1234',
     requestCert: true,
     rejectUnauthorized: false,
@@ -34,6 +34,6 @@ https.createServer(
     options,
     app
 )
-    .listen(PORT, () => {
+    .listen(PORT, '0.0.0.0', () => {
         console.log(`Running on PORT ${PORT}`);
     });
