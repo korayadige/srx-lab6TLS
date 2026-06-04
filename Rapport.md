@@ -150,7 +150,7 @@ Nous avons implémenté une whitelist dans `server/index.js` afin de restreindre
 **Modification apportée :**
 
 ```js
-const WHITELIST = ['web-client-1'];
+const WHITELIST = ['Koray'];
 
 app.get('/', (req, res) => {
     if (!req.client.authorized) {
