@@ -58,6 +58,7 @@ Comme rejectUnauthorized est à false, le serveur nous laisse entrer sur le prot
 Node.js vérifie si le navigateur a fourni un certificat valide signé par la ca.crt. Ce n'est pas le cas, donc req.client.authorized devient false.
 
 La condition "if" est validée, et le serveur te renvoie une erreur HTTP **401** Unauthorized avec le texte : **"Invalid client certificate authentication."**.
+
 ---
 
 
