@@ -117,11 +117,14 @@ Pour utiliser le port 443, on doit démarrer le serveur avec la commande sudo no
 
 >Quel site obtenez-vous ?
 >
-Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes :
+Nous n'obtenons pas le vrai site de l'école. Nous obtenons "Hello World" .
+Cela s'est passé en trois étapes :
 
 Étape 1 : Au début, nous obtenons une erreur de connexion (page blanche avec le renard) parce que le serveur n'écoute pas sur l'adresse 127.0.2.2.
 
 Étape 2 : Après la configuration 0.0.0.0, le navigateur demande notre certificat client. Nous acceptons, et nous obtenons un message d'erreur sur une page blanche : *"Invalid client certificate authentication."*
+
+Étape 3 : Après la configuration SAN, Nous avons obteni le page de "Hello World".
 
 >Votre navigateur génère-t-il une alerte de sécurité ?
 
@@ -137,11 +140,24 @@ Pas de SAN (Subject Alternative Name) : Notre faux certificat n'a pas l'extensio
 
 Erreur mTLS : Quand nous envoyons le certificat client "Koray", notre serveur Node.js ne peut pas le valider correctement avec le fichier ca.crt. C'est pour ça que le serveur affiche "Invalid client certificate".
 
-
-
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
+
+**Configuration final:**
+
+**Gestion de l'exception de sécurité sur Firefox**
+Lors de la première tentative d'accès à [https://heig-vd.ch](https://heig-vd.ch), bien que le fichier hosts ait correctement redirigé le trafic vers notre serveur local (DNS Spoofing), Firefox a bloqué la page avec l'alerte de sécurité SEC_ERROR_UNKNOWN_ISSUER.
+
+Procédure de résolution appliquée dans le laboratoire :
+
+Pour contourner ce blocage légitime en environnement de test, nous avons cliqué sur "Avancé..." dans l'avertissement Firefox, puis sur "Accepter le risque et poursuivre" afin d'ajouter une exception de sécurité permanente pour ce domaine.
+
+Configuration de l'extension SAN : De plus, les versions modernes de Firefox rejettent strictement les certificats basés uniquement sur le Common Name (CN). Nous avons donc dû régénérer le certificat du serveur (fake_server.crt) en y injectant explicitement l'extension Subject Alternative Name (SAN) via l'argument -extfile <(echo "subjectAltName=DNS:heig-vd.ch").
+
+Résultat final : Une fois l'exception validée et le certificat client personnel (sécurisé par le mot de passe koray) fourni à l'invite du navigateur, la poignée de main mTLS s'est finalisée avec succès, débloquant l'accès à la page applicative affichant "Hello, world!" (voir capture d'écran ci-dessous).
+
+<img width="614" height="391" alt="image" src="https://github.com/user-attachments/assets/46c25258-8cee-44a1-b20f-7d48f4e5a093" />
 
 ---
 
