@@ -57,7 +57,10 @@ Comme rejectUnauthorized est à false, le serveur nous laisse entrer sur le prot
 
 Node.js vérifie si le navigateur a fourni un certificat valide signé par la ca.crt. Ce n'est pas le cas, donc req.client.authorized devient false.
 
-La condition "if" est validée, et le serveur te renvoie une erreur HTTP **401** Unauthorized avec le texte : *"Invalid client certificate authentication."*.
+
+
+La condition "if" est validée, et le serveur te renvoie une erreur HTTP **401** Unauthorized avec le texte : **"Invalid client certificate authentication."**.
+
 
 ---
 
@@ -95,6 +98,9 @@ Le navigateur détermine le certificat à présenter en suivant un processus str
 **Sélection/Validation utilisateur :** Si un seul certificat correspond (comme notre certificat CN=Koray signé par MyLocalCA), le navigateur affiche une invite de confirmation à l'utilisateur pour valider l'envoi de cette identité spécifique afin de protéger la vie privée du client.
 
 ---
+
+
+
 ## Pharming
 ---
 
@@ -120,11 +126,16 @@ Pour utiliser le port 443, on doit démarrer le serveur avec la commande sudo no
 
 >Quel site obtenez-vous ?
 
-Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes :
+
+Nous n'obtenons pas le vrai site de l'école. Nous obtenons "Hello World" .
+Cela s'est passé en trois étapes :
+
 
 Étape 1 : Au début, nous obtenons une erreur de connexion (page blanche avec le renard) parce que le serveur n'écoute pas sur l'adresse 127.0.2.2.
 
 Étape 2 : Après la configuration 0.0.0.0, le navigateur demande notre certificat client. Nous acceptons, et nous obtenons un message d'erreur sur une page blanche : *"Invalid client certificate authentication."*
+
+Étape 3 : Après la configuration SAN, Nous avons obteni le page de "Hello World".
 
 >Votre navigateur génère-t-il une alerte de sécurité ?
 
@@ -132,13 +143,42 @@ Nous n'obtenons pas le vrai site de l'école. Cela s'est passé en deux étapes 
 
 >Pourquoi ?
 
+
 Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne connaît pas cette autorité locale pour un vrai site public comme heig-vd.ch. C'est une protection contre le vol d'identité.
 
 **Point clé — le scénario "CA malhonnête" :** Si notre CA avait déjà été présente dans le magasin de confiance du navigateur (comme nous l'avions ajoutée dans la partie précédente), Firefox n'aurait généré **aucune alerte**. L'utilisateur aurait vu le cadenas vert et cru naviguer sur le vrai heig-vd.ch. C'est précisément le danger d'une CA compromise ou corrompue : une fois qu'elle est approuvée par le système, elle peut signer n'importe quel domaine sans déclencher d'avertissement.
 
+Il y a trois raisons pour ces blocages et erreurs :
+
+Autorité inconnue (CA) : Notre certificat est signé par MyLocalCA. Firefox ne connaît pas cette autorité locale pour un vrai site public comme heig-vd.ch. C'est une protection contre le vol d'identité.
+
+Pas de SAN (Subject Alternative Name) : Notre faux certificat n'a pas l'extension modern SAN pour heig-vd.ch. Les navigateurs d'aujourd'hui rejettent les certificats sans SAN.
+
+Erreur mTLS : Quand nous envoyons le certificat client "Koray", notre serveur Node.js ne peut pas le valider correctement avec le fichier ca.crt. C'est pour ça que le serveur affiche "Invalid client certificate".
+
+
 <img width="295" height="283" alt="image" src="https://github.com/user-attachments/assets/9366a462-a8a0-46ef-9227-004542e16ad3" />
 
 <img width="299" height="199" alt="image" src="https://github.com/user-attachments/assets/796ddb6c-2fc0-4d38-abd6-0cef80fb171d" />
+
+
+
+**Configuration final:**
+
+**Gestion de l'exception de sécurité sur Firefox**
+Lors de la première tentative d'accès à [https://heig-vd.ch](https://heig-vd.ch), bien que le fichier hosts ait correctement redirigé le trafic vers notre serveur local (DNS Spoofing), Firefox a bloqué la page avec l'alerte de sécurité SEC_ERROR_UNKNOWN_ISSUER.
+
+Procédure de résolution appliquée dans le laboratoire :
+
+Pour contourner ce blocage légitime en environnement de test, nous avons cliqué sur "Avancé..." dans l'avertissement Firefox, puis sur "Accepter le risque et poursuivre" afin d'ajouter une exception de sécurité permanente pour ce domaine.
+
+Configuration de l'extension SAN : De plus, les versions modernes de Firefox rejettent strictement les certificats basés uniquement sur le Common Name (CN). Nous avons donc dû régénérer le certificat du serveur (fake_server.crt) en y injectant explicitement l'extension Subject Alternative Name (SAN) via l'argument -extfile <(echo "subjectAltName=DNS:heig-vd.ch").
+
+Résultat final : Une fois l'exception validée et le certificat client personnel (sécurisé par le mot de passe koray) fourni à l'invite du navigateur, la poignée de main mTLS s'est finalisée avec succès, débloquant l'accès à la page applicative affichant "Hello, world!" (voir capture d'écran ci-dessous).
+
+<img width="614" height="391" alt="image" src="https://github.com/user-attachments/assets/46c25258-8cee-44a1-b20f-7d48f4e5a093" />
+
+
 ---
 
 ## Idées de tâches
@@ -150,6 +190,7 @@ Nous avons implémenté une whitelist dans `server/index.js` afin de restreindre
 **Modification apportée :**
 
 ```js
+
 const WHITELIST = ['Koray'];
 
 app.get('/', (req, res) => {
@@ -178,11 +219,18 @@ app.get('/', (req, res) => {
 
 ## Questions théoriques
 
+
 >**Imaginer un scénario pertinent où ce serait utile :**
 
 Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
 
 >**Comment gérer la signature des certificats ?**
+
+**Imaginer un scénario pertinent où ce serait utile :**
+
+Une banque souhaitant sécuriser la communication entre son application mobile et ses API internes. Le serveur vérifie que le client est bien l'application officielle (et non une application malveillante) grâce à son certificat client. Le client vérifie l'identité du serveur. Les deux parties s'authentifient mutuellement, ce qui empêche aussi bien le phishing que l'usurpation d'identité côté client.
+
+**Comment gérer la signature des certificats ?**
 
 Dans un système à petite échelle, un opérateur signe manuellement chaque CSR avec la CA (comme nous l'avons fait avec EasyRSA).
 
